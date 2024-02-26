@@ -28,9 +28,11 @@ else
 	exit 1
 endif
 
+# note: modified due to weird local issues
+# https://github.com/eugeneyan/obsidian-copilot/issues/11
 ifeq ($(RUNTIME), docker) 
 opensearch: docker-network
-	${RUNTIME}  run -it --rm --network obsidian-copilot --network-alias opensearch -p 9200:9200 -p 9600:9600 -v "${PWD_PATH}/data:/usr/share/opensearch/data" -e "discovery.type=single-node" opensearchproject/opensearch:2.7.0
+	${RUNTIME}  run -it --rm --network obsidian-copilot --network-alias opensearch -p 9200:9200 -p 9600:9600 -v "${PWD_PATH}/data:/usr/share/opensearch/data" -v ./opensearch_entrypoint.sh:/opensearch_entrypoint.sh -e "discovery.type=single-node" --entrypoint /opensearch_entrypoint.sh opensearchproject/opensearch:2.7.0 
 else ifeq ($(RUNTIME), podman)
 opensearch: podman-network
 	${RUNTIME}  run -it --rm --network obsidian-copilot --network-alias opensearch -p 9200:9200 -p 9600:9600 -v "${PWD_PATH}/data:/usr/share/opensearch/data" -e "discovery.type=single-node" opensearchproject/opensearch:2.7.0
@@ -54,9 +56,10 @@ build-artifacts: build
 	${RUNTIME} run -it --rm --network ${NETWORK} -v "${PWD_PATH}/data:/obsidian-copilot/data" -v "$(OBSIDIAN_PATH):${DOCKER_OBSIDIAN_PATH}" -v "${TRANSFORMER_CACHE}:/root/.cache/huggingface/hub" ${IMAGE_TAG} /bin/bash -c "./build.sh ${DOCKER_OBSIDIAN_PATH}"
 
 # pip install podman-compose if you don't have it
+# Note: this was originally `docker-compose` but I changed it to `docker compose`
 ifeq ($(RUNTIME), docker) 
 run:
-	docker-compose up
+	docker compose up
 else ifeq ($(RUNTIME), podman)
 run:
 	podman-compose up 

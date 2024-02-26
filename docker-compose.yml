@@ -5,6 +5,7 @@ services:
     restart: always
     volumes:
       - ./data:/usr/share/opensearch/data
+      - ./opensearch_entrypoint.sh:/opensearch_entrypoint.sh
     environment:
       - discovery.type=single-node
     ports:
@@ -12,6 +13,7 @@ services:
       - 9600:9600
     networks:
       - obsidian-copilot
+    entrypoint: /opensearch_entrypoint.sh
 
   obsidian-copilot:
     image: obsidian-copilot
